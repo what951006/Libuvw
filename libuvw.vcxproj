@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{27286A84-47B9-45A9-A65E-3215002D5594}</ProjectGuid>
+    <RootNamespace>libuvw</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>libuv\include;libuv\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;user32.lib;userenv.lib;ws2_32.lib;kernel32.lib;gdi32.lib;winspool.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>libuv\include;libuv\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>advapi32.lib;iphlpapi.lib;psapi.lib;shell32.lib;user32.lib;userenv.lib;ws2_32.lib;kernel32.lib;gdi32.lib;winspool.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="include\uvw.hpp" />
+    <ClInclude Include="include\uvw\async.hpp" />
+    <ClInclude Include="include\uvw\check.hpp" />
+    <ClInclude Include="include\uvw\dns.hpp" />
+    <ClInclude Include="include\uvw\emitter.hpp" />
+    <ClInclude Include="include\uvw\fs.hpp" />
+    <ClInclude Include="include\uvw\fs_event.hpp" />
+    <ClInclude Include="include\uvw\fs_poll.hpp" />
+    <ClInclude Include="include\uvw\handle.hpp" />
+    <ClInclude Include="include\uvw\idle.hpp" />
+    <ClInclude Include="include\uvw\lib.hpp" />
+    <ClInclude Include="include\uvw\loop.hpp" />
+    <ClInclude Include="include\uvw\pipe.hpp" />
+    <ClInclude Include="include\uvw\poll.hpp" />
+    <ClInclude Include="include\uvw\prepare.hpp" />
+    <ClInclude Include="include\uvw\process.hpp" />
+    <ClInclude Include="include\uvw\request.hpp" />
+    <ClInclude Include="include\uvw\resource.hpp" />
+    <ClInclude Include="include\uvw\signal.hpp" />
+    <ClInclude Include="include\uvw\stream.hpp" />
+    <ClInclude Include="include\uvw\tcp.hpp" />
+    <ClInclude Include="include\uvw\thread.hpp" />
+    <ClInclude Include="include\uvw\timer.hpp" />
+    <ClInclude Include="include\uvw\tty.hpp" />
+    <ClInclude Include="include\uvw\udp.hpp" />
+    <ClInclude Include="include\uvw\underlying_type.hpp" />
+    <ClInclude Include="include\uvw\util.hpp" />
+    <ClInclude Include="include\uvw\work.hpp" />
+    <ClInclude Include="libuv\include\uv.h" />
+    <ClInclude Include="libuv\include\uv\aix.h" />
+    <ClInclude Include="libuv\include\uv\android-ifaddrs.h" />
+    <ClInclude Include="libuv\include\uv\bsd.h" />
+    <ClInclude Include="libuv\include\uv\darwin.h" />
+    <ClInclude Include="libuv\include\uv\errno.h" />
+    <ClInclude Include="libuv\include\uv\linux.h" />
+    <ClInclude Include="libuv\include\uv\os390.h" />
+    <ClInclude Include="libuv\include\uv\posix.h" />
+    <ClInclude Include="libuv\include\uv\stdint-msvc2008.h" />
+    <ClInclude Include="libuv\include\uv\sunos.h" />
+    <ClInclude Include="libuv\include\uv\threadpool.h" />
+    <ClInclude Include="libuv\include\uv\tree.h" />
+    <ClInclude Include="libuv\include\uv\unix.h" />
+    <ClInclude Include="libuv\include\uv\version.h" />
+    <ClInclude Include="libuv\include\uv\win.h" />
+    <ClInclude Include="libuv\src\heap-inl.h" />
+    <ClInclude Include="libuv\src\idna.h" />
+    <ClInclude Include="libuv\src\queue.h" />
+    <ClInclude Include="libuv\src\strscpy.h" />
+    <ClInclude Include="libuv\src\uv-common.h" />
+    <ClInclude Include="libuv\src\win\atomicops-inl.h" />
+    <ClInclude Include="libuv\src\win\fs-fd-hash-inl.h" />
+    <ClInclude Include="libuv\src\win\handle-inl.h" />
+    <ClInclude Include="libuv\src\win\internal.h" />
+    <ClInclude Include="libuv\src\win\req-inl.h" />
+    <ClInclude Include="libuv\src\win\stream-inl.h" />
+    <ClInclude Include="libuv\src\win\winapi.h" />
+    <ClInclude Include="libuv\src\win\winsock.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libuv\src\fs-poll.c" />
+    <ClCompile Include="libuv\src\idna.c" />
+    <ClCompile Include="libuv\src\inet.c" />
+    <ClCompile Include="libuv\src\random.c" />
+    <ClCompile Include="libuv\src\strscpy.c" />
+    <ClCompile Include="libuv\src\threadpool.c" />
+    <ClCompile Include="libuv\src\timer.c" />
+    <ClCompile Include="libuv\src\uv-common.c" />
+    <ClCompile Include="libuv\src\uv-data-getter-setters.c" />
+    <ClCompile Include="libuv\src\version.c" />
+    <ClCompile Include="libuv\src\win\async.c" />
+    <ClCompile Include="libuv\src\win\core.c" />
+    <ClCompile Include="libuv\src\win\detect-wakeup.c" />
+    <ClCompile Include="libuv\src\win\dl.c" />
+    <ClCompile Include="libuv\src\win\error.c" />
+    <ClCompile Include="libuv\src\win\fs-event.c" />
+    <ClCompile Include="libuv\src\win\fs.c" />
+    <ClCompile Include="libuv\src\win\getaddrinfo.c" />
+    <ClCompile Include="libuv\src\win\getnameinfo.c" />
+    <ClCompile Include="libuv\src\win\handle.c" />
+    <ClCompile Include="libuv\src\win\loop-watcher.c" />
+    <ClCompile Include="libuv\src\win\pipe.c" />
+    <ClCompile Include="libuv\src\win\poll.c" />
+    <ClCompile Include="libuv\src\win\process-stdio.c" />
+    <ClCompile Include="libuv\src\win\process.c" />
+    <ClCompile Include="libuv\src\win\signal.c" />
+    <ClCompile Include="libuv\src\win\snprintf.c" />
+    <ClCompile Include="libuv\src\win\stream.c" />
+    <ClCompile Include="libuv\src\win\tcp.c" />
+    <ClCompile Include="libuv\src\win\thread.c" />
+    <ClCompile Include="libuv\src\win\tty.c" />
+    <ClCompile Include="libuv\src\win\udp.c" />
+    <ClCompile Include="libuv\src\win\util.c" />
+    <ClCompile Include="libuv\src\win\winapi.c" />
+    <ClCompile Include="libuv\src\win\winsock.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

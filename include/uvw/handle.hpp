@@ -26,8 +26,8 @@ struct CloseEvent {};
  * Base type for all `uvw` handle types.
  */
 template<typename T, typename U>
-class Handle: public BaseHandle, public Resource<T, U> {
-protected:
+class Handle: public BaseHandle, public Resource<T, U>
+{
     static void closeCallback(uv_handle_t *handle) {
         Handle<T, U> &ref = *(static_cast<T*>(handle->data));
         auto ptr = ref.shared_from_this();
@@ -36,6 +36,7 @@ protected:
         ref.publish(CloseEvent{});
     }
 
+protected:
     static void allocCallback(uv_handle_t *, std::size_t suggested, uv_buf_t *buf) {
         auto size = static_cast<unsigned int>(suggested);
         *buf = uv_buf_init(new char[size], size);

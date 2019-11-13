@@ -32,7 +32,7 @@ struct SendEvent {};
  */
 struct UDPDataEvent {
     explicit UDPDataEvent(Addr sndr, std::unique_ptr<const char[]> buf, std::size_t len, bool part) noexcept
-        : data{std::move(buf)}, length{len}, sender{std::move(sndr)}, partial{part}
+        : data{std::move(buf)}, length{len}, sender(std::move(sndr)), partial{part}
     {}
 
     std::unique_ptr<const char[]> data; /*!< A bunch of data read on the stream. */
@@ -45,13 +45,13 @@ struct UDPDataEvent {
 namespace details {
 
 
-enum class UVUDPFlags: std::underlying_type_t<uv_udp_flags> {
+enum class UVUDPFlags: typename std::underlying_type<uv_udp_flags>::type {
     IPV6ONLY = UV_UDP_IPV6ONLY,
     REUSEADDR = UV_UDP_REUSEADDR
 };
 
 
-enum class UVMembership: std::underlying_type_t<uv_membership> {
+enum class UVMembership: typename std::underlying_type<uv_membership>::type {
     LEAVE_GROUP = UV_LEAVE_GROUP,
     JOIN_GROUP = UV_JOIN_GROUP
 };
@@ -64,7 +64,7 @@ public:
     SendReq(ConstructorAccess ca, std::shared_ptr<Loop> loop, std::unique_ptr<char[], Deleter> dt, unsigned int len)
         : Request<SendReq, uv_udp_send_t>{ca, std::move(loop)},
           data{std::move(dt)},
-          buf{uv_buf_init(data.get(), len)}
+          buf(uv_buf_init(data.get(), len))
     {}
 
     void send(uv_udp_t *handle, const struct sockaddr* addr) {
@@ -174,82 +174,6 @@ public:
      */
     void bind(const sockaddr &addr, Flags<Bind> opts = Flags<Bind>{}) {
         invoke(&uv_udp_bind, get(), &addr, opts);
-    }
-
-    /**
-     * @brief Associates the handle to a remote address and port (either IPv4 or
-     * IPv6).
-     *
-     * Every message sent by this handle is automatically sent to the given
-     * destination.<br/>
-     * Trying to call this function on an already connected handle isn't
-     * allowed.
-     *
-     * An ErrorEvent event is emitted in case of errors during the connection.
-     *
-     * @param addr Initialized `sockaddr_in` or `sockaddr_in6` data structure.
-     */
-    void connect(const sockaddr &addr) {
-        invoke(&uv_udp_connect, get(), &addr);
-    }
-
-    /**
-     * @brief Associates the handle to a remote address and port (either IPv4 or
-     * IPv6).
-     *
-     * Every message sent by this handle is automatically sent to the given
-     * destination.<br/>
-     * Trying to call this function on an already connected handle isn't
-     * allowed.
-     *
-     * An ErrorEvent event is emitted in case of errors during the connection.
-     *
-     * @param ip The address to which to bind.
-     * @param port The port to which to bind.
-     */
-    template<typename I = IPv4>
-    void connect(std::string ip, unsigned int port) {
-        typename details::IpTraits<I>::Type addr;
-        details::IpTraits<I>::addrFunc(ip.data(), port, &addr);
-        connect(reinterpret_cast<const sockaddr &>(addr));
-    }
-
-    /**
-     * @brief Associates the handle to a remote address and port (either IPv4 or
-     * IPv6).
-     *
-     * Every message sent by this handle is automatically sent to the given
-     * destination.<br/>
-     * Trying to call this function on an already connected handle isn't
-     * allowed.
-     *
-     * An ErrorEvent event is emitted in case of errors during the connection.
-     *
-     * @param addr A valid instance of Addr.
-     */
-    template<typename I = IPv4>
-    void connect(Addr addr) {
-        connect<I>(std::move(addr.ip), addr.port);
-    }
-
-    /**
-     * @brief Disconnects the handle.
-     *
-     * Trying to disconnect a handle that is not connected isn't allowed.
-     *
-     * An ErrorEvent event is emitted in case of errors.
-     */
-    void disconnect() {
-        invoke(&uv_udp_connect, get(), nullptr);
-    }
-
-    /**
-     * @brief Gets the remote address to which the handle is connected, if any.
-     * @return A valid instance of Addr, an empty one in case of errors.
-     */
-    template<typename I = IPv4>
-    Addr peer() const noexcept {
-        return details::address<I>(&uv_udp_getpeername, get());
     }
 
     /**
@@ -394,12 +318,16 @@ public:
                         data.release(), [](char *ptr) { delete[] ptr; }
                     }, len);
 
-        auto listener = [ptr = shared_from_this()](const auto &event, const auto &) {
+        auto ptr = shared_from_this();
+        auto errorEventListener = [ptr](const ErrorEvent &event, const details::SendReq &) {
+            ptr->publish(event);
+        };
+        auto sendEventListener = [ptr](const SendEvent &event, const details::SendReq &) {
             ptr->publish(event);
         };
 
-        req->once<ErrorEvent>(listener);
-        req->once<SendEvent>(listener);
+        req->once<ErrorEvent>(errorEventListener);
+        req->once<SendEvent>(sendEventListener);
         req->send(get(), &addr);
     }
 
@@ -473,12 +401,16 @@ public:
                         data, [](char *) {}
                     }, len);
 
-        auto listener = [ptr = shared_from_this()](const auto &event, const auto &) {
+        auto ptr = shared_from_this();
+        auto errorEventListener = [ptr](const ErrorEvent &event, const details::SendReq &) {
+            ptr->publish(event);
+        };
+        auto sendEventListener = [ptr](const SendEvent &event, const details::SendReq &) {
             ptr->publish(event);
         };
 
-        req->once<ErrorEvent>(listener);
-        req->once<SendEvent>(listener);
+        req->once<ErrorEvent>(errorEventListener);
+        req->once<SendEvent>(sendEventListener);
         req->send(get(), &addr);
     }
 

@@ -18,7 +18,7 @@ namespace uvw {
 namespace details {
 
 
-enum class UVTCPFlags: std::underlying_type_t<uv_tcp_flags> {
+enum class UVTCPFlags: typename std::underlying_type<uv_tcp_flags>::type {
     IPV6ONLY = UV_TCP_IPV6ONLY
 };
 
@@ -210,13 +210,18 @@ public:
      * @param addr Initialized `sockaddr_in` or `sockaddr_in6` data structure.
      */
     void connect(const sockaddr &addr) {
-        auto listener = [ptr = shared_from_this()](const auto &event, const auto &) {
+        auto ptr = shared_from_this();
+        auto errorEventListener = [ptr](const ErrorEvent &event, const details::ConnectReq &) {
+            ptr->publish(event);
+        };
+        auto connectEventListener = [ptr](const ConnectEvent &event, const details::ConnectReq &) {
             ptr->publish(event);
         };
 
+
         auto req = loop().resource<details::ConnectReq>();
-        req->once<ErrorEvent>(listener);
-        req->once<ConnectEvent>(listener);
+        req->once<ErrorEvent>(errorEventListener);
+        req->once<ConnectEvent>(connectEventListener);
         req->connect(&uv_tcp_connect, get(), &addr);
     }
 
@@ -249,21 +254,6 @@ public:
     template<typename I = IPv4>
     void connect(Addr addr) {
         connect<I>(std::move(addr.ip), addr.port);
-    }
-
-    /**
-     * @brief Resets a TCP connection by sending a RST packet.
-     *
-     * This is accomplished by setting the `SO_LINGER` socket option with a
-     * linger interval of zero and then calling `close`.<br/>
-     * Due to some platform inconsistencies, mixing of `shutdown` and
-     * `closeReset` calls is not allowed.
-     *
-     * A CloseEvent event is emitted when the connection has been reset.<br/>
-     * An ErrorEvent event is emitted in case of errors.
-     */
-    void closeReset() {
-        invoke(&uv_tcp_close_reset, get(), &this->closeCallback);
     }
 
 private:

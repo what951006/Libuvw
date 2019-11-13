@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <string_view>
 #include <type_traits>
 #include <algorithm>
 #include <stdexcept>
@@ -20,7 +19,7 @@ namespace uvw {
 namespace details {
 
 
-enum class UVHandleType: std::underlying_type_t<uv_handle_type> {
+enum class UVHandleType: typename std::underlying_type<uv_handle_type>::type {
     UNKNOWN = UV_UNKNOWN_HANDLE,
     ASYNC = UV_ASYNC,
     CHECK = UV_CHECK,
@@ -81,7 +80,7 @@ bool operator==(UVTypeWrapper<T> lhs, UVTypeWrapper<T> rhs) {
  */
 template<typename E>
 class Flags final {
-    using InnerType = std::underlying_type_t<E>;
+    using InnerType = typename std::underlying_type<E>::type;
 
     constexpr InnerType toInnerType(E flag) const noexcept { return static_cast<InnerType>(flag); }
 
@@ -93,8 +92,10 @@ public:
      * @return A valid instance of Flags instantiated from values `V`.
      */
     template<E... V>
-    static constexpr Flags<E> from() {
-        return (Flags<E>{} | ... | V);
+    static Flags<E> from() {
+        auto flags = Flags<E>{};
+        int _[] = { 0, (flags = flags | V, 0)... };
+        return void(_), flags;
     }
 
     /**
@@ -118,14 +119,14 @@ public:
     constexpr Flags(const Flags &f) noexcept: flags{f.flags} {  }
     constexpr Flags(Flags &&f) noexcept: flags{std::move(f.flags)} {  }
 
-    ~Flags() noexcept { static_assert(std::is_enum_v<E>); }
+    ~Flags() noexcept { static_assert(std::is_enum<E>::value, "!"); }
 
-    constexpr Flags & operator=(const Flags &f) noexcept {
+    Flags & operator=(const Flags &f) noexcept {
         flags = f.flags;
         return *this;
     }
 
-    constexpr Flags & operator=(Flags &&f) noexcept {
+    Flags & operator=(Flags &&f) noexcept {
         flags = std::move(f.flags);
         return *this;
     }
@@ -198,12 +199,10 @@ constexpr FileHandle StdERR{2}; /*!< Placeholder for stderr descriptor. */
 
 using TimeSpec = uv_timespec_t; /*!< Library equivalent for uv_timespec_t. */
 using Stat = uv_stat_t; /*!< Library equivalent for uv_stat_t. */
-using Statfs = uv_statfs_t; /*!< Library equivalent for uv_statfs_t. */
 using Uid = uv_uid_t; /*!< Library equivalent for uv_uid_t. */
 using Gid = uv_gid_t; /*!< Library equivalent for uv_gid_t. */
 
 using TimeVal = uv_timeval_t; /*!< Library equivalent for uv_timeval_t. */
-using TimeVal64 = uv_timeval64_t; /*!< Library equivalent for uv_timeval64_t. */
 using RUsage = uv_rusage_t; /*!< Library equivalent for uv_rusage_t. */
 
 
@@ -230,7 +229,7 @@ struct Passwd {
      * @brief Gets the uid.
      * @return The current effective uid (not the real uid).
      */
-    auto uid() const noexcept {
+    auto uid() const noexcept -> decltype(uv_passwd_t::uid) {
         return (passwd ? passwd->uid : decltype(uv_passwd_t::uid){});
     }
 
@@ -238,7 +237,7 @@ struct Passwd {
      * @brief Gets the gid.
      * @return The gid of the current effective uid (not the real uid).
      */
-    auto gid() const noexcept {
+    auto gid() const noexcept -> decltype(uv_passwd_t::gid) {
         return (passwd ?  passwd->gid : decltype(uv_passwd_t::gid){});
     }
 
@@ -268,55 +267,6 @@ struct Passwd {
 
 private:
     std::shared_ptr<uv_passwd_t> passwd;
-};
-
-
-/**
- * @brief Utility class.
- *
- * This class can be used to get name and information about the current kernel.
- * The populated data includes the operating system name, release, version, and
- * machine.
- *
- * \sa Utilities::uname
- */
-struct UtsName {
-    UtsName(std::shared_ptr<uv_utsname_t> utsname): utsname{utsname} {}
-
-    /**
-     * @brief Gets the operating system name (like "Linux").
-     * @return The operating system name.
-     */
-    std::string sysname() const noexcept {
-        return utsname ? utsname->sysname : "";
-    }
-
-    /**
-     * @brief Gets the operating system release (like "2.6.28").
-     * @return The operating system release.
-     */
-    std::string release() const noexcept {
-        return utsname ? utsname->release : "";
-    }
-
-    /**
-     * @brief Gets the operating system version.
-     * @return The operating system version
-     */
-    std::string version() const noexcept {
-        return utsname ? utsname->version : "";
-    }
-
-    /**
-     * @brief Gets the hardware identifier.
-     * @return The hardware identifier.
-     */
-    std::string machine() const noexcept {
-        return utsname ? utsname->machine : "";
-    }
-
-private:
-    std::shared_ptr<uv_utsname_t> utsname;
 };
 
 
@@ -393,7 +343,7 @@ struct IpTraits<IPv4> {
     using NameFuncType = int(*)(const Type *, char *, std::size_t);
     static constexpr AddrFuncType addrFunc = &uv_ip4_addr;
     static constexpr NameFuncType nameFunc = &uv_ip4_name;
-    static constexpr auto sinPort(const Type *addr) { return addr->sin_port; }
+    static constexpr auto sinPort(const Type *addr) -> decltype(addr->sin_port){ return addr->sin_port; }
 };
 
 
@@ -404,7 +354,7 @@ struct IpTraits<IPv6> {
     using NameFuncType = int(*)(const Type *, char *, std::size_t);
     static constexpr AddrFuncType addrFunc = &uv_ip6_addr;
     static constexpr NameFuncType nameFunc = &uv_ip6_name;
-    static constexpr auto sinPort(const Type *addr) { return addr->sin6_port; }
+    static constexpr auto sinPort(const Type *addr) -> decltype(addr->sin6_port) { return addr->sin6_port; }
 };
 
 
@@ -428,7 +378,7 @@ template<typename I, typename F, typename H>
 Addr address(F &&f, const H *handle) noexcept {
     sockaddr_storage ssto;
     int len = sizeof(ssto);
-    Addr addr{};
+    Addr addr;
 
     int err = std::forward<F>(f)(handle, reinterpret_cast<sockaddr *>(&ssto), &len);
 
@@ -556,58 +506,11 @@ struct Utilities {
         }
 
         /**
-         * @brief Retrieves all environment variables and iterates them.
-         *
-         * Environment variables are passed one at a time to the callback in the
-         * form of `std::string_view`s.<br/>
-         * The signature of the function call operator must be such that it
-         * accepts two parameters, the name and the value of the i-th variable.
-         *
-         * @tparam Func Type of a function object to which to pass environment
-         * variables.
-         * @param func A function object to which to pass environment variables.
-         * @return True in case of success, false otherwise.
-         */
-        template<typename Func>
-        static std::enable_if_t<std::is_invocable_v<Func, std::string_view, std::string_view>, bool>
-        env(Func func) noexcept {
-            uv_env_item_t *items = nullptr;
-            int count{};
-
-            const bool ret = (uv_os_environ(&items, &count) == 0);
-
-            if(ret) {
-                for(int pos = 0; pos < count; ++pos) {
-                    func(std::string_view{items[pos].name}, std::string_view{items[pos].value});
-                }
-
-                uv_os_free_environ(items, count);
-            }
-
-            return ret;
-        }
-
-        /**
          * @brief Returns the hostname.
          * @return The hostname, an empty string in case of errors.
          */
         static std::string hostname() noexcept {
             return details::tryRead(&uv_os_gethostname);
-        }
-
-        /**
-         * @brief Gets name and information about the current kernel.
-         *
-         * This function can be used to get name and information about the
-         * current kernel. The populated data includes the operating system
-         * name, release, version, and machine.
-         *
-         * @return Name and information about the current kernel.
-         */
-        static UtsName uname() noexcept {
-            auto ptr = std::make_shared<uv_utsname_t>();
-            uv_os_uname(ptr.get());
-            return ptr;
         }
 
         /**
@@ -760,7 +663,7 @@ struct Utilities {
         int count;
 
         if(0 == uv_cpu_info(&infos, &count)) {
-            std::for_each(infos, infos+count, [&cpuinfos](const auto &info) {
+            std::for_each(infos, infos+count, [&cpuinfos](const uv_cpu_info_t &info) {
                 cpuinfos.push_back({ info.model, info.speed, info.cpu_times });
             });
 
@@ -785,7 +688,7 @@ struct Utilities {
         int count{0};
 
         if(0 == uv_interface_addresses(&ifaces, &count)) {
-            std::for_each(ifaces, ifaces+count, [&interfaces](const auto &iface) {
+            std::for_each(ifaces, ifaces+count, [&interfaces](const uv_interface_address_t &iface) {
                 InterfaceAddress interfaceAddress;
 
                 interfaceAddress.name = iface.name;
@@ -922,21 +825,6 @@ struct Utilities {
     }
 
     /**
-     * @brief Gets the amount of memory available to the process (in bytes).
-     *
-     * Gets the amount of memory available to the process based on limits
-     * imposed by the OS. If there is no such constraint, or the constraint is
-     * unknown, `0` is returned.<br/>
-     * Note that it is not unusual for this value to be less than or greater
-     * than `totalMemory`.
-     *
-     * @return Amount of memory available to the process.
-     */
-    static uint64_t constrainedMemory() noexcept {
-        return uv_get_constrained_memory();
-    }
-
-    /**
      * @brief Gets the current system uptime.
      * @return The current system uptime or 0 in case of errors.
      */
@@ -957,7 +845,7 @@ struct Utilities {
     static RUsage rusage() noexcept {
         RUsage ru;
         auto err = uv_getrusage(&ru);
-        return err ? RUsage{} : ru;
+        return err ? RUsage() : ru;
     }
 
     /**
@@ -997,17 +885,6 @@ struct Utilities {
      */
     static bool chdir(const std::string &dir) noexcept {
         return (0 == uv_chdir(dir.data()));
-    }
-
-    /**
-     * @brief Cross-platform implementation of
-     * [`gettimeofday`](https://linux.die.net/man/2/gettimeofday)
-     * @return The current time.
-     */
-    static TimeVal64 timeOfDay() {
-        uv_timeval64_t ret;
-        uv_gettimeofday(&ret);
-        return ret;
     }
 };
 

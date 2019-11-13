@@ -19,18 +19,16 @@ namespace uvw {
 namespace details {
 
 
-enum class UVProcessFlags: std::underlying_type_t<uv_process_flags> {
+enum class UVProcessFlags: typename std::underlying_type<uv_process_flags>::type {
     SETUID = UV_PROCESS_SETUID,
     SETGID = UV_PROCESS_SETGID,
     WINDOWS_VERBATIM_ARGUMENTS = UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS,
     DETACHED = UV_PROCESS_DETACHED,
-    WINDOWS_HIDE = UV_PROCESS_WINDOWS_HIDE,
-    WINDOWS_HIDE_CONSOLE = UV_PROCESS_WINDOWS_HIDE_CONSOLE,
-    WINDOWS_HIDE_GUI = UV_PROCESS_WINDOWS_HIDE_GUI
+    WINDOWS_HIDE = UV_PROCESS_WINDOWS_HIDE
 };
 
 
-enum class UVStdIOFlags: std::underlying_type_t<uv_stdio_flags> {
+enum class UVStdIOFlags: typename std::underlying_type<uv_stdio_flags>::type {
     IGNORE_STREAM = UV_IGNORE,
     CREATE_PIPE = UV_CREATE_PIPE,
     INHERIT_FD = UV_INHERIT_FD,
@@ -152,7 +150,7 @@ public:
 
         // fake initialization so as to have leak invoked
         // see init member function for more details
-        initialize([](auto...){ return 0; });
+        initialize([](uv_loop_t*, uv_process_t*){ return 0; });
 
         invoke(&uv_spawn, parent(), get(), &po);
     }
@@ -196,8 +194,6 @@ public:
      * * `ProcessHandle::Process::WINDOWS_VERBATIM_ARGUMENTS`
      * * `ProcessHandle::Process::DETACHED`
      * * `ProcessHandle::Process::WINDOWS_HIDE`
-     * * `ProcessHandle::Process::WINDOWS_HIDE_CONSOLE`
-     * * `ProcessHandle::Process::WINDOWS_HIDE_GUI`
      *
      * See the official
      * [documentation](http://docs.libuv.org/en/v1.x/process.html#c.uv_process_flags)
@@ -273,7 +269,7 @@ public:
 
         auto actual = FileHandle::Type{fd};
 
-        auto it = std::find_if(poFdStdio.begin(), poFdStdio.end(), [actual](auto &&container){
+        auto it = std::find_if(poFdStdio.begin(), poFdStdio.end(), [actual](const uv_stdio_container_t &container){
             return container.data.fd == actual;
         });
 

@@ -21,16 +21,10 @@ struct ResetModeMemo {
 };
 
 
-enum class UVTTYModeT: std::underlying_type_t<uv_tty_mode_t> {
+enum class UVTTYModeT: typename std::underlying_type<uv_tty_mode_t>::type {
     NORMAL = UV_TTY_MODE_NORMAL,
     RAW = UV_TTY_MODE_RAW,
     IO = UV_TTY_MODE_IO
-};
-
-
-enum class UVTTYVTermStateT: std::underlying_type_t<uv_tty_vtermstate_t> {
-    SUPPORTED = UV_TTY_SUPPORTED,
-    UNSUPPORTED = UV_TTY_UNSUPPORTED
 };
 
 
@@ -56,7 +50,7 @@ enum class UVTTYVTermStateT: std::underlying_type_t<uv_tty_vtermstate_t> {
  * for further details.
  */
 class TTYHandle final: public StreamHandle<TTYHandle, uv_tty_t> {
-    static auto resetModeMemo() {
+    static auto resetModeMemo() -> std::shared_ptr<details::ResetModeMemo> {
         static std::weak_ptr<details::ResetModeMemo> weak;
         auto shared = weak.lock();
         if(!shared) { weak = shared = std::make_shared<details::ResetModeMemo>(); }
@@ -65,7 +59,6 @@ class TTYHandle final: public StreamHandle<TTYHandle, uv_tty_t> {
 
 public:
     using Mode = details::UVTTYModeT;
-    using VTermState = details::UVTTYVTermStateT;
 
     explicit TTYHandle(ConstructorAccess ca, std::shared_ptr<Loop> ref, FileHandle desc, bool readable)
         : StreamHandle{ca, std::move(ref)},
@@ -99,7 +92,7 @@ public:
      * @return True in case of success, false otherwise.
      */
     bool mode(Mode m) {
-        return (0 == uv_tty_set_mode(get(), static_cast<std::underlying_type_t<Mode>>(m)));
+        return (0 == uv_tty_set_mode(get(), static_cast<typename std::underlying_type<Mode>::type>(m)));
     }
 
     /**
@@ -123,58 +116,6 @@ public:
         }
 
         return size;
-    }
-
-    /**
-     * @brief Controls whether console virtual terminal sequences are processed
-     * by the library or console.
-     *
-     * This function is only meaningful on Windows systems. On Unix it is
-     * silently ignored.
-     *
-     * Available states are:
-     *
-     * * `TTY::VTermState::SUPPORTED`
-     * * `TTY::VTermState::UNSUPPORTED`
-     *
-     * See the official
-     * [documentation](http://docs.libuv.org/en/v1.x/tty.html#c.uv_tty_vtermstate_t)
-     * for further details.
-     *
-     * @param s The state to be set.
-     */
-    void vtermState(VTermState s) const noexcept {
-        switch(s) {
-        case VTermState::SUPPORTED:
-            uv_tty_set_vterm_state(uv_tty_vtermstate_t::UV_TTY_SUPPORTED);
-            break;
-        case VTermState::UNSUPPORTED:
-            uv_tty_set_vterm_state(uv_tty_vtermstate_t::UV_TTY_UNSUPPORTED);
-            break;
-        }
-    }
-
-    /**
-     * @brief Gets the current state of whether console virtual terminal
-     * sequences are handled by the library or the console.
-     *
-     * This function is not implemented on Unix.
-     *
-     * Available states are:
-     *
-     * * `TTY::VTermState::SUPPORTED`
-     * * `TTY::VTermState::UNSUPPORTED`
-     *
-     * See the official
-     * [documentation](http://docs.libuv.org/en/v1.x/tty.html#c.uv_tty_vtermstate_t)
-     * for further details.
-     *
-     * @return The current state.
-     */
-    VTermState vtermState() const noexcept {
-        uv_tty_vtermstate_t state;
-        uv_tty_get_vterm_state(&state);
-        return VTermState{state};
     }
 
 private:

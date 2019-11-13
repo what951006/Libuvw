@@ -23,31 +23,46 @@ class UnderlyingType {
 protected:
     struct ConstructorAccess { explicit ConstructorAccess(int) {} };
 
-    template<typename R = U>
-    auto get() noexcept {
+    auto get() noexcept -> U * {
+        return &resource;
+    }
+
+    auto get() const noexcept -> const U * {
+        return &resource;
+    }
+
+    template<typename R>
+    auto get() noexcept -> R * {
+        static_assert(not std::is_same<R, U>::value, "!");
         return reinterpret_cast<R *>(&resource);
     }
 
-    template<typename R = U>
-    auto get() const noexcept {
+    template<typename R, typename... P>
+    auto get(UnderlyingType<P...> &other) noexcept -> R * {
+        return reinterpret_cast<R *>(&other.resource);
+    }
+
+    template<typename R>
+    auto get() const noexcept -> const R * {
+        static_assert(not std::is_same<R, U>::value, "!");
         return reinterpret_cast<const R *>(&resource);
     }
 
     template<typename R, typename... P>
-    auto get(UnderlyingType<P...> &other) noexcept {
-        return reinterpret_cast<R *>(&other.resource);
+    auto get(const UnderlyingType<P...> &other) const noexcept -> const R * {
+        return reinterpret_cast<const R *>(&other.resource);
     }
 
 public:
     explicit UnderlyingType(ConstructorAccess, std::shared_ptr<Loop> ref) noexcept
-        : pLoop{std::move(ref)}, resource{}
+        : pLoop{std::move(ref)}, resource()
     {}
 
     UnderlyingType(const UnderlyingType &) = delete;
     UnderlyingType(UnderlyingType &&) = delete;
 
     virtual ~UnderlyingType() {
-        static_assert(std::is_base_of_v<UnderlyingType<T, U>, T>);
+        static_assert(std::is_base_of<UnderlyingType<T, U>, T>::value, "!");
     }
 
     UnderlyingType & operator=(const UnderlyingType &) = delete;
